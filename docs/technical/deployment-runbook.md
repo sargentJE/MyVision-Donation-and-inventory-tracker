@@ -98,13 +98,49 @@ openssl rand -hex 32   # for REFRESH_TOKEN_SECRET
 
 ### 3.6 Post-Deploy Checklist
 
-- [ ] Login with seed credentials
-- [ ] Change seed admin password immediately
-- [ ] Verify dashboard loads with empty state
-- [ ] Run CSV import: `npm run import:equipment -- --file=data/import-ready.csv --dry-run`
-- [ ] If dry-run clean: run live import
-- [ ] Verify item count matches expected (55)
-- [ ] Set up UptimeRobot ping on the production URL
+- [x] Login with seed credentials
+- [x] Change seed admin password immediately
+- [x] Verify dashboard loads
+- [x] Run CSV import (see §3.7 below)
+- [x] Verify item count: 55 imported
+- [ ] Set up UptimeRobot ping on `https://equipment.sightkick.co.uk/api/health`
+
+### 3.7 CSV Import Procedure
+
+Data files are gitignored (may contain PII). Transfer and import via docker exec:
+
+```bash
+# From local machine — copy CSV to VPS
+scp data/import-ready.csv root@<VPS-IP>:/tmp/
+
+# SSH into VPS
+ssh root@<VPS-IP>
+
+# Copy CSV into API container + install curl
+CONTAINER=$(docker ps -qf "name=api" | head -1)
+docker cp /tmp/import-ready.csv $CONTAINER:/tmp/
+docker exec -u root $CONTAINER apk add --no-cache curl
+
+# Login + dry-run
+docker exec $CONTAINER sh -c '
+  curl -s -c /tmp/c.txt -X POST http://localhost:3001/api/auth/login \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"<ADMIN_EMAIL>\",\"password\":\"<ADMIN_PASSWORD>\"}" > /dev/null && \
+  curl -s -b /tmp/c.txt -X POST "http://localhost:3001/api/equipment/import" \
+    -F "file=@/tmp/import-ready.csv"
+'
+# Verify: {"data":{"dryRun":true,"totalRows":55,"validRows":55,...}}
+
+# Live import
+docker exec $CONTAINER sh -c '
+  curl -s -c /tmp/c.txt -X POST http://localhost:3001/api/auth/login \
+    -H "Content-Type: application/json" \
+    -d "{\"email\":\"<ADMIN_EMAIL>\",\"password\":\"<ADMIN_PASSWORD>\"}" > /dev/null && \
+  curl -s -b /tmp/c.txt -X POST "http://localhost:3001/api/equipment/import" \
+    -F "file=@/tmp/import-ready.csv" -F "dryRun=false"
+'
+# Verify: {"data":{"dryRun":false,...,"importedCount":55}}
+```
 
 ---
 

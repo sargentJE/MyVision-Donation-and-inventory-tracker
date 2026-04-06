@@ -2,7 +2,7 @@
 ## MyVision Equipment Tracker -- Build Phases
 
 _Created: 3 April 2026_
-_Last updated: 6 April 2026 (Phases 1–10 complete except deployment. UI refinement complete. Pushed to GitHub.)_
+_Last updated: 6 April 2026 (All phases complete. Deployed to equipment.sightkick.co.uk. 55 items imported.)_
 
 ---
 
@@ -339,18 +339,19 @@ _Detailed sprint docs in `docs/ui-refinement/`_
 - [x] Pushed to GitHub: `sargentJE/MyVision-Donation-and-inventory-tracker` (public)
 - [x] 253 files, 31,463 lines of code
 
-### Deployment (TODO)
-- [ ] Create production `docker-compose.yml` (API + web + Postgres + backup sidecar)
-- [ ] Coolify setup per `docs/technical/deployment-runbook.md`
-- [ ] Domain DNS configuration (A record → Hetzner VPS)
-- [ ] SSL via Let's Encrypt (automatic via Coolify/Traefik)
-- [ ] First production deploy
-- [ ] Transfer `data/import-ready.csv` to server and run CSV import
-- [ ] Post-deploy checklist:
-  - [ ] Login with seed credentials
-  - [ ] Change seed admin password immediately via Settings
-  - [ ] Verify dashboard loads
-  - [ ] Dry-run CSV import, then live import
-  - [ ] Verify 55 equipment items imported
-  - [ ] Set up UptimeRobot monitoring (5-min ping)
+### Deployment (COMPLETE)
+- [x] Production `docker-compose.prod.yml` — API + web + Postgres + backup sidecar, Coolify-aligned (Traefik labels, `${VAR:?}` env var discovery, network isolation, non-root containers)
+- [x] Dockerfiles — multi-stage builds for API (NestJS + Prisma + bcrypt rebuild for Alpine) and web (Next.js standalone output)
+- [x] `.dockerignore` — excludes .git, node_modules, .env, data, logs, build caches
+- [x] `next.config.js` — `output: 'standalone'`, configurable `API_INTERNAL_URL` for Docker networking, security headers
+- [x] `/api/health` endpoint — unauthenticated, used by Docker health check and monitoring
+- [x] Coolify setup on Hetzner VPS — public GitHub repo, Docker Compose build pack, environment variables via Coolify UI
+- [x] Domain: `equipment.sightkick.co.uk` — Cloudflare DNS (wildcard subdomain), SSL via Coolify/Traefik
+- [x] First production deploy — all 4 containers healthy (db, api, web, db-backup)
+- [x] Admin account created via seed (jamie.sargent@myvision.org.uk)
+- [x] CSV import — 55 equipment items imported via `POST /api/equipment/import` (dry-run validated, then live import via docker exec + curl against localhost:3001)
+- [x] Dashboard verified with full data (55 items, charts, metrics)
+
+### Remaining
+- [ ] Set up UptimeRobot monitoring (`https://equipment.sightkick.co.uk/api/health`, 5-min interval)
 - [ ] Review data retention against MyVision Data Protection Policy

@@ -2,7 +2,7 @@
 
 _Project type: Internal build — MyVision Oxfordshire_
 _Started: March 2026_
-_Status: Built — Phases 1–10 complete, UI refinement complete, deployment pending_
+_Status: Live — deployed to equipment.sightkick.co.uk, 55 equipment items imported_
 
 ---
 
@@ -90,12 +90,11 @@ See Section 13 of the [PRD](PRD.md) for the full v2 roadmap.
 
 - [x] ~~UI refinement pass (6 sprints — brand, accessibility, polish)~~
 - [x] ~~Git repository initialised and pushed to GitHub~~
-- [ ] Create production docker-compose.yml
-- [ ] Coolify setup per deployment runbook
-- [ ] Domain DNS configuration
-- [ ] First production deploy
-- [ ] Transfer CSV data and run import on production
-- [ ] Post-deploy checklist (login, change seed password, verify dashboard, UptimeRobot)
+- [x] ~~Production Docker stack (docker-compose.prod.yml + Dockerfiles)~~
+- [x] ~~Coolify deployment on Hetzner VPS~~
+- [x] ~~Domain: equipment.sightkick.co.uk (Cloudflare DNS + SSL)~~
+- [x] ~~CSV import (55 items)~~
+- [ ] Set up UptimeRobot monitoring
 - [ ] Review data retention against MyVision DPP
 
 ---
