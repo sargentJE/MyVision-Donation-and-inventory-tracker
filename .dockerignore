@@ -1,0 +1,15 @@
+.git
+.gitignore
+.claude
+.turbo
+.env
+.env.local
+.env.*.local
+node_modules
+.next
+dist
+data
+logs
+*.log
+*.md
+!apps/api/prisma/**
