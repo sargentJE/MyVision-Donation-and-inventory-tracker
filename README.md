@@ -45,7 +45,6 @@ packages/
   types/        Shared TypeScript enums + Zod schemas
 docs/           Comprehensive project documentation
 assets/         Brand assets (logos, favicons)
-data/           CSV import file (55 equipment items)
 ```
 
 ## Scripts

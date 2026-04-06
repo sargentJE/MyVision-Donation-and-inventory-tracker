@@ -2,7 +2,7 @@
 
 _Project type: Internal build — MyVision Oxfordshire_
 _Started: March 2026_
-_Status: Built — Phases 1–10 complete, deployment pending_
+_Status: Built — Phases 1–10 complete, UI refinement complete, deployment pending_
 
 ---
 
@@ -69,7 +69,7 @@ Replaces informal tracking. Provides: a QR-scannable inventory, loan receipt PDF
 | [Deployment Runbook](technical/deployment-runbook.md) | Coolify on Hetzner: setup, env vars, backup, rollback |
 | [Accessibility Guide](ACCESSIBILITY.md) | WCAG 2.2 AA/AAA compliance guide — landmarks, forms, charts, motion, testing |
 | [Brand Guide](brand-guide.md) | Colour palette, favicons, logo, badge colours, Tailwind config |
-
+| [UI Refinement Sprints](ui-refinement/) | 6 sprint docs covering brand, accessibility, and polish work |
 
 ---
 
@@ -88,10 +88,13 @@ See Section 13 of the [PRD](PRD.md) for the full v2 roadmap.
 
 ## Next Steps
 
+- [x] ~~UI refinement pass (6 sprints — brand, accessibility, polish)~~
+- [x] ~~Git repository initialised and pushed to GitHub~~
+- [ ] Create production docker-compose.yml
 - [ ] Coolify setup per deployment runbook
 - [ ] Domain DNS configuration
 - [ ] First production deploy
-- [ ] Run CSV import on production
+- [ ] Transfer CSV data and run import on production
 - [ ] Post-deploy checklist (login, change seed password, verify dashboard, UptimeRobot)
 - [ ] Review data retention against MyVision DPP
 

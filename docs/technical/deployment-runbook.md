@@ -1,8 +1,8 @@
 # Deployment Runbook
 ## MyVision Equipment Tracker — Coolify on Hetzner
 
-_Date: 2 April 2026_
-_Status: Draft_
+_Date: 2 April 2026 (updated 6 April 2026)_
+_Status: Ready — code complete, repo pushed, awaiting infrastructure setup_
 
 ---
 
@@ -12,7 +12,7 @@ _Status: Draft_
 |---|---|---|
 | VPS | Hetzner Cloud | Existing server, Coolify already installed |
 | PaaS | Coolify | Handles builds, deploys, SSL, reverse proxy (Traefik) |
-| Source | GitHub | Private repo |
+| Source | GitHub | Public repo (`sargentJE/MyVision-Donation-and-inventory-tracker`) |
 | Database | PostgreSQL 16 | Docker container managed by Coolify |
 | Backup | Hetzner Automated Backups + pg_dump cron | Server-level + application-level |
 | SSL | Let's Encrypt via Coolify/Traefik | Automatic renewal |

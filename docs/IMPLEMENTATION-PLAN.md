@@ -2,7 +2,7 @@
 ## MyVision Equipment Tracker -- Build Phases
 
 _Created: 3 April 2026_
-_Last updated: 3 April 2026 (Phase 2 + 3A complete)_
+_Last updated: 6 April 2026 (Phases 1–10 complete except deployment. UI refinement complete. Pushed to GitHub.)_
 
 ---
 
@@ -319,14 +319,38 @@ _Last updated: 3 April 2026 (Phase 2 + 3A complete)_
 - [x] `GET /auth/me` — return authenticated user's profile
 - [x] `PATCH /auth/me` — self-service name and email update (409 on duplicate email)
 - [x] `POST /auth/change-password` — verify current password, hash new, revoke all tokens, clear cookies
-- [x] Frontend `/settings` page — profile card (name + email) and password change card (current / new / confirm)
+- [x] Frontend `/settings` page — profile card (name + email) and password change dialog
 - [x] Settings link added to user menu (gear icon, between role badge and Sign out)
 - [x] Password change forces re-login (query cache cleared, redirect to `/login`)
 
+### UI Refinement Pass (COMPLETE — 6 sprints)
+_Detailed sprint docs in `docs/ui-refinement/`_
+
+- [x] **Sprint 1 — Brand Foundation:** CSS variables remapped to MyVision palette (navy #001172, yellow #fdea18, blue #2e4e9d). Login page branded with logo + card styling.
+- [x] **Sprint 2 — Sidebar & Navigation:** Dark sidebar (#282f5f) with white logo, yellow active-link border, matching mobile bottom nav. Contrast-audited (text-white/80, ring-white/70).
+- [x] **Sprint 3 — Form Accessibility:** Migrated 10+ dialog forms from native FormData to react-hook-form + zod. Automatic `aria-describedby`, inline FormMessage errors, required field `*` indicators. All raw `<select>` replaced with shadcn Select. Client typeahead sr-only label. Settings password error linked via aria-describedby.
+- [x] **Sprint 4 — Landmarks & Pagination:** Shared `PaginationControls` component (6 pages). Dashboard section landmarks with sr-only headings. Chart card h2→h3 heading hierarchy. User menu `aria-label`. Header visible on desktop. Audit log `aria-controls`. Admin loading `role="status"`. Donation toggle `aria-label`.
+- [x] **Sprint 5 — Dialog Extractions:** `ChangePasswordDialog` (settings page now single profile card). `CreateClientDialog` (typeahead opens dialog, not inline form). Client anonymise → `AlertDialog` (role="alertdialog").
+- [x] **Sprint 6 — Polish & Consistency:** Shared `TableEmptyState` component with icons + CTAs (5 list pages). Activity card icons use brand tokens. Equipment filter `<fieldset>` wrapping. Label position picker `<fieldset>`.
+
+### Source Control (COMPLETE)
+- [x] Git repository initialised
+- [x] `.gitignore` configured (dist, data, logs, .env, .claude, node_modules, build caches)
+- [x] Pushed to GitHub: `sargentJE/MyVision-Donation-and-inventory-tracker` (public)
+- [x] 253 files, 31,463 lines of code
+
 ### Deployment (TODO)
-- [ ] Coolify setup per deployment runbook
-- [ ] Domain DNS configuration
+- [ ] Create production `docker-compose.yml` (API + web + Postgres + backup sidecar)
+- [ ] Coolify setup per `docs/technical/deployment-runbook.md`
+- [ ] Domain DNS configuration (A record → Hetzner VPS)
+- [ ] SSL via Let's Encrypt (automatic via Coolify/Traefik)
 - [ ] First production deploy
-- [ ] Run CSV import on production
-- [ ] Post-deploy checklist (login, change seed password, verify dashboard, UptimeRobot)
-- [ ] Review data retention against MyVision DPP
+- [ ] Transfer `data/import-ready.csv` to server and run CSV import
+- [ ] Post-deploy checklist:
+  - [ ] Login with seed credentials
+  - [ ] Change seed admin password immediately via Settings
+  - [ ] Verify dashboard loads
+  - [ ] Dry-run CSV import, then live import
+  - [ ] Verify 55 equipment items imported
+  - [ ] Set up UptimeRobot monitoring (5-min ping)
+- [ ] Review data retention against MyVision Data Protection Policy
