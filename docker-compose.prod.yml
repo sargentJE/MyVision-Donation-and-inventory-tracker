@@ -5,16 +5,14 @@ services:
     volumes:
       - pgdata:/var/lib/postgresql/data
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-myvision}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Database password is required}
+      POSTGRES_DB: ${POSTGRES_DB:-equipment_tracker}
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-myvision}"]
       interval: 5s
       timeout: 5s
       retries: 5
-    networks:
-      - internal
 
   api:
     build:
@@ -24,11 +22,21 @@ services:
     depends_on:
       db:
         condition: service_healthy
-    env_file: .env
     environment:
       NODE_ENV: production
-      DATABASE_URL: postgresql://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}
-      WEB_ORIGIN: https://equipment.sightkick.co.uk
+      DATABASE_URL: postgresql://${POSTGRES_USER:-myvision}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB:-equipment_tracker}
+      JWT_SECRET: ${JWT_SECRET:?JWT secret is required}
+      JWT_EXPIRY: ${JWT_EXPIRY:-60m}
+      REFRESH_TOKEN_SECRET: ${REFRESH_TOKEN_SECRET:?Refresh token secret is required}
+      REFRESH_TOKEN_EXPIRY: ${REFRESH_TOKEN_EXPIRY:-7d}
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-Admin}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:?Admin email is required}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:?Admin password is required}
+      WEB_ORIGIN: https://${DOMAIN:-equipment.sightkick.co.uk}
+      API_PORT: "3001"
+      THROTTLE_TTL: ${THROTTLE_TTL:-60000}
+      THROTTLE_LIMIT: ${THROTTLE_LIMIT:-300}
+      CRON_SCHEDULE: ${CRON_SCHEDULE:-0 6 * * *}
     expose:
       - "3001"
     healthcheck:
@@ -37,8 +45,6 @@ services:
       timeout: 5s
       retries: 3
       start_period: 30s
-    networks:
-      - internal
 
   web:
     build:
@@ -51,11 +57,10 @@ services:
     environment:
       API_INTERNAL_URL: http://api:3001
       NODE_ENV: production
-    ports:
-      - "${WEB_PORT:-3000}:3000"
-    networks:
-      - internal
-      - external
+    expose:
+      - "3000"
+    labels:
+      - traefik.http.services.web.loadbalancer.server.port=3000
 
   db-backup:
     image: postgres:16
@@ -64,7 +69,10 @@ services:
       - db
     volumes:
       - db-backups:/backups
-    env_file: .env
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-myvision}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-equipment_tracker}
     entrypoint: ["/bin/sh", "-c"]
     command:
       - |
@@ -74,15 +82,8 @@ services:
           echo "Backup complete: $$(date)"
           sleep 86400
         done
-    networks:
-      - internal
+    exclude_from_hc: true
 
 volumes:
   pgdata:
   db-backups:
-
-networks:
-  internal:
-    driver: bridge
-  external:
-    driver: bridge
