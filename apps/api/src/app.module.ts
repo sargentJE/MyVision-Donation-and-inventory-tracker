@@ -17,6 +17,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { DashboardModule } from './dashboard/dashboard.module';
 import { DonationsModule } from './donations/donations.module';
 import { ReportsModule } from './reports/reports.module';
+import { HealthController } from './health/health.controller';
 
 @Module({
   imports: [
@@ -51,6 +52,7 @@ import { ReportsModule } from './reports/reports.module';
     DonationsModule,
     ReportsModule,
   ],
+  controllers: [HealthController],
   providers: [
     // Apply throttler globally
     {

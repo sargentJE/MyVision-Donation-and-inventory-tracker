@@ -6,6 +6,19 @@ const nextConfig = {
   // Standalone output for Docker deployment (self-contained server.js)
   output: 'standalone',
 
+  // Security headers (defense-in-depth alongside Cloudflare and Helmet)
+  async headers() {
+    return [{
+      source: '/:path*',
+      headers: [
+        { key: 'X-Frame-Options', value: 'DENY' },
+        { key: 'X-Content-Type-Options', value: 'nosniff' },
+        { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
+        { key: 'Permissions-Policy', value: 'camera=(), microphone=(), geolocation=()' },
+      ],
+    }];
+  },
+
   // Proxy API requests to the NestJS backend
   // Dev: defaults to localhost:3001
   // Production: set API_INTERNAL_URL=http://api:3001 (Docker service name)
