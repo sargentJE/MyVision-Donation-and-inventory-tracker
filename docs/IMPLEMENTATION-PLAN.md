@@ -352,6 +352,10 @@ _Detailed sprint docs in `docs/ui-refinement/`_
 - [x] CSV import — 55 equipment items imported via `POST /api/equipment/import` (dry-run validated, then live import via docker exec + curl against localhost:3001)
 - [x] Dashboard verified with full data (55 items, charts, metrics)
 
+### Post-Deployment QA
+- [ ] Complete manual QA checklist: `docs/technical/post-deployment-qa.md` (18 sections, 150+ test items)
+  - Authentication & sessions, navigation, dashboard, inventory, equipment CRUD, loan lifecycle, demo visits, clients, donations, reports, admin, notifications, QR labels, accessibility, security, performance, mobile
+
 ### Remaining
 - [ ] Set up UptimeRobot monitoring (`https://equipment.sightkick.co.uk/api/health`, 5-min interval)
 - [ ] Review data retention against MyVision Data Protection Policy

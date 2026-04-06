@@ -69,6 +69,7 @@ Replaces informal tracking. Provides: a QR-scannable inventory, loan receipt PDF
 | [Deployment Runbook](technical/deployment-runbook.md) | Coolify on Hetzner: setup, env vars, backup, rollback |
 | [Accessibility Guide](ACCESSIBILITY.md) | WCAG 2.2 AA/AAA compliance guide — landmarks, forms, charts, motion, testing |
 | [Brand Guide](brand-guide.md) | Colour palette, favicons, logo, badge colours, Tailwind config |
+| [Post-Deployment QA](technical/post-deployment-qa.md) | Manual testing checklist — 18 sections, 150+ test items |
 | [UI Refinement Sprints](ui-refinement/) | 6 sprint docs covering brand, accessibility, and polish work |
 
 ---
