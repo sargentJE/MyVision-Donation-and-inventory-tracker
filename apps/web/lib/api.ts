@@ -16,6 +16,7 @@ async function request<T>(
   const res = await fetch(`${BASE_URL}${path}`, {
     ...fetchOptions,
     credentials: 'include',
+    signal: fetchOptions?.signal ?? AbortSignal.timeout(30_000),
     headers: {
       'Content-Type': 'application/json',
       ...fetchOptions?.headers,
