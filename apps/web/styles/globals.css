@@ -1,0 +1,94 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 0 0% 20%; /* Dark Grey #333 for body text */
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 20%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 20%;
+    --primary: 228.9 100% 22.4%; /* MyVision Navy #001172 */
+    --primary-foreground: 0 0% 100%; /* White */
+    --secondary: 210 40% 96.1%;
+    --secondary-foreground: 228.9 100% 22.4%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: 0 0% 35.3%; /* Mid Grey #5a5a5a */
+    --accent: 55.1 98.7% 54.3%; /* MyVision Yellow #fdea18 */
+    --accent-foreground: 228.9 100% 22.4%; /* Navy text on yellow */
+    --destructive: 0 84.2% 60.2%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 87.1%; /* Light Grey #dedfe0 */
+    --input: 0 0% 87.1%;
+    --ring: 222.7 54.7% 39.8%; /* MyVision Blue #2e4e9d */
+    --radius: 0.5rem;
+  }
+
+  .dark {
+    --background: 246.7 24.3% 7.3%; /* MyVision Dark #0f0e17 */
+    --foreground: 0 0% 95%;
+    --card: 232.4 40.7% 16%; /* Lighter than bg, darker than sidebar */
+    --card-foreground: 0 0% 95%;
+    --popover: 232.4 40.7% 16%;
+    --popover-foreground: 0 0% 95%;
+    --primary: 228.9 100% 45%; /* Navy lightened for dark backgrounds */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 232.4 40.7% 20%;
+    --secondary-foreground: 0 0% 95%;
+    --muted: 232.4 40.7% 12%;
+    --muted-foreground: 0 0% 65%;
+    --accent: 55.1 98.7% 54.3%; /* MyVision Yellow */
+    --accent-foreground: 228.9 100% 22.4%;
+    --destructive: 0 80% 55%; /* Brighter red for dark backgrounds */
+    --destructive-foreground: 0 0% 100%;
+    --border: 232.4 40.7% 20%;
+    --input: 232.4 40.7% 20%;
+    --ring: 222.7 54.7% 55%; /* MyVision Blue lightened */
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+/* Accessibility — respect user motion preferences (WCAG 2.3.3 AAA) */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Label printing — Avery L7160 sticker sheet support */
+@media screen {
+  .print-only {
+    display: none !important;
+  }
+}
+
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  @page {
+    size: A4;
+    margin: 0;
+  }
+  body {
+    margin: 0;
+    padding: 0;
+  }
+}

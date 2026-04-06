@@ -1,0 +1,409 @@
+# schema.prisma
+## MyVision Equipment Tracker — Prisma Schema v1.0
+
+> **Note:** This is the canonical schema. Copy this content to `apps/api/prisma/schema.prisma` when scaffolding the project. Pin Prisma to v5 (`"prisma": "^5"`) — Prisma 7 has breaking datasource changes.
+>
+> See [Schema Design Decisions](schema-decisions.md) for rationale on key choices.
+
+```prisma
+// =============================================================================
+// MyVision Oxfordshire — Resource Centre Equipment Tracker
+// Prisma Schema v1.0
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum AcquisitionType {
+  PURCHASED
+  DONATED_DEMO
+  DONATED_GIVEABLE
+}
+
+enum OperationalStatus {
+  AVAILABLE_FOR_LOAN
+  RESERVED
+  ON_LOAN
+  ALLOCATED_OUT
+  AVAILABLE_FOR_DEMO
+  ON_DEMO_VISIT
+  DECOMMISSIONED
+}
+
+enum Condition {
+  GOOD
+  FAIR
+  POOR
+}
+
+enum DeviceCategory {
+  DIGITAL_MAGNIFIER
+  CCTV_MAGNIFIER
+  TEXT_TO_SPEECH
+  SMARTPHONE
+  TABLET
+  MONITOR
+  OTHER
+}
+
+enum Role {
+  ADMIN
+  STAFF
+}
+
+enum AuditEvent {
+  ITEM_CREATED
+  ITEM_EDITED
+  ACQUISITION_RECLASSIFIED
+  RESERVED
+  RESERVATION_CANCELLED
+  LOAN_ISSUED
+  LOAN_RETURNED
+  LOAN_CONVERTED_TO_ALLOCATION
+  ALLOCATED_DIRECTLY
+  DEMO_VISIT_STARTED
+  DEMO_VISIT_RETURNED
+  DECOMMISSIONED
+  ARCHIVED
+  ARCHIVE_RESTORED
+  SALE_FLAGGED
+  SALE_FLAG_REMOVED
+  USER_CREATED
+  USER_DEACTIVATED
+}
+
+enum NotificationType {
+  LOAN_OVERDUE
+  RESERVATION_EXPIRED
+  DEMO_VISIT_OVERDUE
+}
+
+enum ReservationCloseReason {
+  CONVERTED_TO_LOAN
+  CANCELLED
+  DECOMMISSIONED
+}
+
+enum LoanCloseReason {
+  RETURNED
+  CONVERTED_TO_ALLOCATION
+  DECOMMISSIONED
+}
+
+enum DemoVisitCloseReason {
+  RETURNED
+  DECOMMISSIONED
+}
+
+// =============================================================================
+// MODELS
+// =============================================================================
+
+model User {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(STAFF)
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  decommissionedEquipment Equipment[]        @relation("EquipmentDecommissionedBy")
+  archivedEquipment       Equipment[]        @relation("EquipmentArchivedBy")
+  anonymisedClients       Client[]           @relation("ClientAnonymisedBy")
+  createdReservations     Reservation[]      @relation("ReservationCreatedBy")
+  closedLoans             Loan[]             @relation("LoanClosedBy")
+  processedAllocations    Allocation[]       @relation("AllocationCreatedBy")
+  startedDemoVisits       DemoVisit[]        @relation("DemoVisitStartedBy")
+  returnedDemoVisits      DemoVisit[]        @relation("DemoVisitReturnedBy")
+  auditEntries            AuditEntry[]       @relation("AuditChangedBy")
+  targetedAuditEntries    AuditEntry[]       @relation("AuditTargetUser")
+  notificationReads       NotificationRead[]
+  refreshTokens           RefreshToken[]
+
+  @@map("users")
+}
+
+model RefreshToken {
+  id        String    @id @default(uuid())
+  userId    String
+  token     String    @unique
+  expiresAt DateTime
+  revokedAt DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([userId, revokedAt])
+  @@map("refresh_tokens")
+}
+
+model Donation {
+  id                  String   @id @default(uuid())
+  donorName           String
+  donorOrg            String?
+  donatedAt           DateTime @db.Date
+  acknowledgementSent Boolean  @default(false)
+  notes               String?
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  items Equipment[]
+
+  @@map("donations")
+}
+
+model Equipment {
+  id              String            @id @default(uuid())
+  name            String
+  make            String?
+  model           String?
+  serialNumber    String?           @unique
+  deviceCategory  DeviceCategory
+  acquisitionType AcquisitionType
+  status          OperationalStatus
+  condition       Condition         @default(GOOD)
+  conditionNotes  String?
+  acquiredAt      DateTime          @db.Date
+  notes           String?
+  isForSale       Boolean           @default(false)
+  purchasePrice   Decimal?          @db.Decimal(10, 2)
+  supplier        String?
+  warrantyExpiry  DateTime?         @db.Date
+
+  decommissionedAt       DateTime?
+  decommissionedByUserId String?
+  decommissionReason     String?
+
+  isArchived       Boolean   @default(false)
+  archivedAt       DateTime?
+  archivedByUserId String?
+  archiveReason    String?
+
+  donationId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  decommissionedBy User?     @relation("EquipmentDecommissionedBy", fields: [decommissionedByUserId], references: [id], onDelete: SetNull)
+  archivedBy       User?     @relation("EquipmentArchivedBy", fields: [archivedByUserId], references: [id], onDelete: SetNull)
+  donation         Donation? @relation(fields: [donationId], references: [id], onDelete: SetNull)
+
+  reservations  Reservation[]
+  loans         Loan[]
+  demoVisits    DemoVisit[]
+  allocation    Allocation?
+  auditLog      AuditEntry[]
+  notifications Notification[]
+
+  @@index([status])
+  @@index([acquisitionType])
+  @@index([isArchived])
+  @@index([isForSale])
+  @@index([status, isArchived])
+  @@index([acquisitionType, isForSale])
+  @@map("equipment")
+}
+
+model Client {
+  id                 String    @id @default(uuid())
+  charitylogId       String    @unique
+  displayName        String
+  isAnonymised       Boolean   @default(false)
+  anonymisedAt       DateTime?
+  anonymisedByUserId String?
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  anonymisedBy User?         @relation("ClientAnonymisedBy", fields: [anonymisedByUserId], references: [id], onDelete: SetNull)
+  reservations Reservation[]
+  loans        Loan[]
+  allocations  Allocation[]
+
+  @@index([isAnonymised])
+  @@map("clients")
+}
+
+model Reservation {
+  id               String                  @id @default(uuid())
+  equipmentId      String
+  clientId         String
+  reservedByUserId String
+  reservedAt       DateTime                @default(now())
+  expiresAt        DateTime?               @db.Date
+  notes            String?
+  closedAt         DateTime?
+  closedReason     ReservationCloseReason?
+  createdAt        DateTime                @default(now())
+  updatedAt        DateTime                @updatedAt
+
+  equipment  Equipment @relation(fields: [equipmentId], references: [id], onDelete: Restrict)
+  client     Client    @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  reservedBy User      @relation("ReservationCreatedBy", fields: [reservedByUserId], references: [id], onDelete: Restrict)
+
+  loan          Loan?
+  notifications Notification[]
+
+  @@index([equipmentId])
+  @@index([clientId])
+  @@index([equipmentId, closedAt])
+  @@index([expiresAt])
+  @@map("reservations")
+}
+
+model Loan {
+  id                       String           @id @default(uuid())
+  equipmentId              String
+  clientId                 String
+  originatingReservationId String?          @unique
+  loanedAt                 DateTime         @default(now())
+  expectedReturn           DateTime?        @db.Date
+  returnedAt               DateTime?
+  conditionAtLoan          Condition?
+  conditionAtLoanNotes     String?
+  conditionAtReturn        Condition?
+  conditionAtReturnNotes   String?
+  closedReason             LoanCloseReason?
+  closedByUserId           String?
+  notes                    String?
+  receiptGeneratedAt       DateTime?
+  createdAt                DateTime         @default(now())
+  updatedAt                DateTime         @updatedAt
+
+  equipment              Equipment    @relation(fields: [equipmentId], references: [id], onDelete: Restrict)
+  client                 Client       @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  originatingReservation Reservation? @relation(fields: [originatingReservationId], references: [id], onDelete: SetNull)
+  closedBy               User?        @relation("LoanClosedBy", fields: [closedByUserId], references: [id], onDelete: SetNull)
+
+  allocation    Allocation?
+  notifications Notification[]
+
+  @@index([equipmentId])
+  @@index([clientId])
+  @@index([equipmentId, returnedAt])
+  @@index([expectedReturn])
+  @@map("loans")
+}
+
+model Allocation {
+  id                String   @id @default(uuid())
+  equipmentId       String   @unique
+  clientId          String
+  allocatedByUserId String
+  originatingLoanId String?  @unique
+  allocatedAt       DateTime @default(now())
+  notes             String?
+  createdAt         DateTime @default(now())
+
+  equipment       Equipment @relation(fields: [equipmentId], references: [id], onDelete: Restrict)
+  client          Client    @relation(fields: [clientId], references: [id], onDelete: Restrict)
+  allocatedBy     User      @relation("AllocationCreatedBy", fields: [allocatedByUserId], references: [id], onDelete: Restrict)
+  originatingLoan Loan?     @relation(fields: [originatingLoanId], references: [id], onDelete: SetNull)
+
+  @@index([clientId])
+  @@map("allocations")
+}
+
+model DemoVisit {
+  id                     String                @id @default(uuid())
+  equipmentId            String
+  startedByUserId        String
+  startedAt              DateTime              @default(now())
+  destination            String?
+  expectedReturn         DateTime?             @db.Date
+  returnedAt             DateTime?
+  returnedByUserId       String?
+  conditionOnReturn      Condition?
+  conditionOnReturnNotes String?
+  closedReason           DemoVisitCloseReason?
+  notes                  String?
+  createdAt              DateTime              @default(now())
+  updatedAt              DateTime              @updatedAt
+
+  equipment  Equipment @relation(fields: [equipmentId], references: [id], onDelete: Restrict)
+  startedBy  User      @relation("DemoVisitStartedBy", fields: [startedByUserId], references: [id], onDelete: Restrict)
+  returnedBy User?     @relation("DemoVisitReturnedBy", fields: [returnedByUserId], references: [id], onDelete: SetNull)
+
+  notifications Notification[]
+
+  @@index([equipmentId])
+  @@index([equipmentId, returnedAt])
+  @@index([expectedReturn])
+  @@map("demo_visits")
+}
+
+model AuditEntry {
+  id              String     @id @default(uuid())
+  equipmentId     String?
+  targetUserId    String?
+  event           AuditEvent
+  field           String?
+  oldValue        String?
+  newValue        String?
+  changedByUserId String
+  changedAt       DateTime   @default(now())
+  note            String?
+
+  equipment  Equipment? @relation(fields: [equipmentId], references: [id], onDelete: Restrict)
+  changedBy  User       @relation("AuditChangedBy", fields: [changedByUserId], references: [id], onDelete: Restrict)
+  targetUser User?      @relation("AuditTargetUser", fields: [targetUserId], references: [id], onDelete: SetNull)
+
+  @@index([equipmentId, changedAt])
+  @@index([changedByUserId])
+  @@index([event])
+  @@index([targetUserId])
+  @@map("audit_entries")
+}
+
+model Notification {
+  id                   String           @id @default(uuid())
+  type                 NotificationType
+  relatedEquipmentId   String?
+  relatedLoanId        String?
+  relatedReservationId String?
+  relatedDemoVisitId   String?
+  message              String
+  resolvedAt           DateTime?
+  createdAt            DateTime         @default(now())
+
+  relatedEquipment   Equipment?   @relation(fields: [relatedEquipmentId], references: [id], onDelete: SetNull)
+  relatedLoan        Loan?        @relation(fields: [relatedLoanId], references: [id], onDelete: Cascade)
+  relatedReservation Reservation? @relation(fields: [relatedReservationId], references: [id], onDelete: Cascade)
+  relatedDemoVisit   DemoVisit?   @relation(fields: [relatedDemoVisitId], references: [id], onDelete: Cascade)
+
+  reads NotificationRead[]
+
+  @@index([type, relatedLoanId, resolvedAt])
+  @@index([type, relatedReservationId, resolvedAt])
+  @@index([type, relatedDemoVisitId, resolvedAt])
+  @@index([resolvedAt])
+  @@map("notifications")
+}
+
+model NotificationRead {
+  id             String    @id @default(uuid())
+  notificationId String
+  userId         String
+  readAt         DateTime  @default(now())
+  dismissedAt    DateTime?
+
+  notification Notification @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, userId])
+  @@index([userId])
+  @@map("notification_reads")
+}
+```
