@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
+import { useSidebarState } from '@/hooks/use-sidebar-state';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { BottomNav } from '@/components/layout/bottom-nav';
@@ -15,12 +16,29 @@ export default function AuthLayout({
   const router = useRouter();
   const pathname = usePathname();
   const { user, isLoading, isAuthenticated, logout } = useAuth();
+  const { collapsed: sidebarCollapsed, toggle: toggleSidebar } =
+    useSidebarState();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {
       router.replace(`/login?redirect=${encodeURIComponent(pathname)}`);
     }
   }, [isLoading, isAuthenticated, pathname, router]);
+
+  // Cmd/Ctrl+\ toggles the sidebar — same shortcut as VS Code's
+  // "toggle primary side bar" and free in Chrome, Firefox and Safari.
+  // Cmd+B (bookmarks sidebar) and Cmd+Shift+B (bookmarks bar) are both
+  // reserved by browsers and were ruled out.
+  useEffect(() => {
+    function onKeyDown(e: KeyboardEvent) {
+      if ((e.metaKey || e.ctrlKey) && e.key === '\\') {
+        e.preventDefault();
+        toggleSidebar();
+      }
+    }
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [toggleSidebar]);
 
   // Show loading state while checking auth
   if (isLoading) {
@@ -48,13 +66,15 @@ export default function AuthLayout({
         Skip to main content
       </a>
 
-      <Sidebar userRole={user.role} />
+      <Sidebar userRole={user.role} collapsed={sidebarCollapsed} />
 
       <div className="flex flex-1 flex-col overflow-hidden">
         <Header
           userName={user.name}
           userRole={user.role}
           onLogout={logout}
+          sidebarCollapsed={sidebarCollapsed}
+          onToggleSidebar={toggleSidebar}
         />
 
         <main id="main-content" className="flex-1 overflow-y-auto p-6 pb-20 lg:pb-6">
