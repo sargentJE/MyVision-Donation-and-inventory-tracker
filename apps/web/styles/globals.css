@@ -74,7 +74,15 @@
   }
 }
 
-/* Label printing — Avery L7160 sticker sheet support */
+/* Label printing — multi-template, multi-sheet support
+ *
+ * The print-only sheet is rendered into <body> via a React portal
+ * (LabelPrintView). That makes it a direct child of <body>, so we can
+ * cleanly hide every other top-level node for print without removing
+ * the print tree from normal document flow. Keeping the print tree in
+ * normal flow is required for page-break-after to paginate multi-sheet
+ * jobs reliably across Chrome, Firefox and Safari.
+ */
 @media screen {
   .print-only {
     display: none !important;
@@ -85,15 +93,31 @@
   .no-print {
     display: none !important;
   }
-  .print-only {
-    display: block !important;
-  }
   @page {
     size: A4;
     margin: 0;
   }
+  html,
   body {
-    margin: 0;
-    padding: 0;
+    margin: 0 !important;
+    padding: 0 !important;
+    background: #fff !important;
+    overflow: visible !important;
+  }
+  /* Hide every top-level body child except the portalled print tree. */
+  body > *:not(.print-only) {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  /* One A4 sheet per printed page; the last sheet doesn't force an extra blank page. */
+  .label-sheet {
+    page-break-after: always;
+    break-after: page;
+  }
+  .label-sheet:last-child {
+    page-break-after: auto;
+    break-after: auto;
   }
 }

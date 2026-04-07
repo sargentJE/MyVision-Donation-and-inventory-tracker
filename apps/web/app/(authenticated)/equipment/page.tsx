@@ -2,25 +2,17 @@
 
 import { useState, useDeferredValue } from 'react';
 import Link from 'next/link';
-import { useEquipmentList, type EquipmentSummary } from '@/hooks/use-equipment';
-import { StatusBadge } from '@/components/equipment/status-badge';
-import { ConditionBadge } from '@/components/equipment/condition-badge';
-import { AcquisitionBadge } from '@/components/equipment/acquisition-badge';
+import { useRouter } from 'next/navigation';
+import { useEquipmentList } from '@/hooks/use-equipment';
+import { useInventorySelection } from '@/hooks/use-inventory-selection';
+import { buildBatchPrintHref } from '@/lib/label-batch';
+import { EquipmentTable } from '@/components/equipment/equipment-table';
+import { InventorySelectionBar } from '@/components/equipment/inventory-selection-bar';
 import { Button } from '@/components/ui/button';
-import { PaginationControls } from '@/components/shared/pagination-controls';
-import { TableEmptyState } from '@/components/shared/table-empty-state';
 import { Input } from '@/components/ui/input';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
 import {
   Select,
   SelectContent,
@@ -28,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, Search, PackageOpen } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 
 const STATUSES = [
   { value: 'AVAILABLE_FOR_LOAN', label: 'Available for Loan' },
@@ -50,21 +42,16 @@ const CATEGORIES = [
   { value: 'OTHER', label: 'Other' },
 ];
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString('en-GB', {
-    day: 'numeric',
-    month: 'short',
-    year: 'numeric',
-  });
-}
-
 export default function InventoryPage() {
+  const router = useRouter();
   const [search, setSearch] = useState('');
   const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [categoryFilter, setCategoryFilter] = useState<string>('');
   const [showArchived, setShowArchived] = useState(false);
   const deferredSearch = useDeferredValue(search);
+
+  const { selection, toggle, clear, toggleAllOnPage } = useInventorySelection();
 
   const allStockQuery = useEquipmentList({
     page,
@@ -80,6 +67,11 @@ export default function InventoryPage() {
     pageSize: 25,
     isForSale: true,
   });
+
+  function printSelected() {
+    if (selection.size === 0) return;
+    router.push(buildBatchPrintHref([...selection]));
+  }
 
   return (
     <div className="space-y-6">
@@ -108,7 +100,9 @@ export default function InventoryPage() {
           <fieldset className="flex flex-col gap-3 sm:flex-row sm:items-end">
             <legend className="sr-only">Filter equipment</legend>
             <div className="relative flex-1">
-              <Label htmlFor="equipment-search" className="sr-only">Search equipment</Label>
+              <Label htmlFor="equipment-search" className="sr-only">
+                Search equipment
+              </Label>
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
               <Input
                 id="equipment-search"
@@ -122,7 +116,9 @@ export default function InventoryPage() {
               />
             </div>
             <div>
-              <Label htmlFor="status-filter" className="sr-only">Filter by status</Label>
+              <Label htmlFor="status-filter" className="sr-only">
+                Filter by status
+              </Label>
               <Select
                 value={statusFilter}
                 onValueChange={(v) => {
@@ -132,19 +128,21 @@ export default function InventoryPage() {
               >
                 <SelectTrigger id="status-filter" className="w-[180px]">
                   <SelectValue placeholder="Status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Statuses</SelectItem>
-                {STATUSES.map((s) => (
-                  <SelectItem key={s.value} value={s.value}>
-                    {s.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Statuses</SelectItem>
+                  {STATUSES.map((s) => (
+                    <SelectItem key={s.value} value={s.value}>
+                      {s.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div>
-              <Label htmlFor="category-filter" className="sr-only">Filter by category</Label>
+              <Label htmlFor="category-filter" className="sr-only">
+                Filter by category
+              </Label>
               <Select
                 value={categoryFilter}
                 onValueChange={(v) => {
@@ -154,16 +152,16 @@ export default function InventoryPage() {
               >
                 <SelectTrigger id="category-filter" className="w-[180px]">
                   <SelectValue placeholder="Category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="ALL">All Categories</SelectItem>
-                {CATEGORIES.map((c) => (
-                  <SelectItem key={c.value} value={c.value}>
-                    {c.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="ALL">All Categories</SelectItem>
+                  {CATEGORIES.map((c) => (
+                    <SelectItem key={c.value} value={c.value}>
+                      {c.label}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
             <div className="flex items-center gap-2">
               <Checkbox
@@ -184,117 +182,38 @@ export default function InventoryPage() {
             data={allStockQuery.data?.data}
             meta={allStockQuery.data?.meta}
             isLoading={allStockQuery.isLoading}
-            page={page}
             onPageChange={setPage}
+            selection={selection}
+            onToggle={toggle}
+            onToggleAllOnPage={toggleAllOnPage}
           />
         </TabsContent>
 
         <TabsContent value="for-sale" className="space-y-4">
           {forSaleQuery.data?.data.length === 0 && !forSaleQuery.isLoading ? (
             <div className="py-12 text-center text-muted-foreground">
-              No items currently flagged for sale. Flag a purchased item from its
-              detail page.
+              No items currently flagged for sale. Flag a purchased item from
+              its detail page.
             </div>
           ) : (
             <EquipmentTable
               data={forSaleQuery.data?.data}
               meta={forSaleQuery.data?.meta}
               isLoading={forSaleQuery.isLoading}
-              page={1}
               onPageChange={() => {}}
+              selection={selection}
+              onToggle={toggle}
+              onToggleAllOnPage={toggleAllOnPage}
             />
           )}
         </TabsContent>
       </Tabs>
+
+      <InventorySelectionBar
+        count={selection.size}
+        onPrint={printSelected}
+        onClear={clear}
+      />
     </div>
-  );
-}
-
-function EquipmentTable({
-  data,
-  meta,
-  isLoading,
-  page,
-  onPageChange,
-}: {
-  data?: EquipmentSummary[];
-  meta?: { total: number; page: number; pageSize: number; totalPages: number };
-  isLoading: boolean;
-  page: number;
-  onPageChange: (p: number) => void;
-}) {
-  if (isLoading) {
-    return (
-      <div className="flex justify-center py-12">
-        <div role="status" aria-label="Loading">
-          <div className="h-8 w-8 animate-spin rounded-full border-4 border-primary border-t-transparent" />
-          <span className="sr-only">Loading...</span>
-        </div>
-      </div>
-    );
-  }
-
-  const items = data ?? [];
-
-  return (
-    <>
-      <div className="rounded-md border overflow-x-auto">
-        <Table aria-label="Equipment inventory">
-          <TableHeader>
-            <TableRow>
-              <TableHead>Name</TableHead>
-              <TableHead className="hidden md:table-cell">Make / Model</TableHead>
-              <TableHead className="hidden lg:table-cell">Category</TableHead>
-              <TableHead>Type</TableHead>
-              <TableHead>Status</TableHead>
-              <TableHead className="hidden sm:table-cell">Condition</TableHead>
-              <TableHead className="hidden lg:table-cell">Added</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {items.map((item) => (
-              <TableRow key={item.id}>
-                <TableCell>
-                  <Link
-                    href={`/equipment/${item.id}`}
-                    className="font-medium text-primary hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded"
-                  >
-                    {item.name}
-                  </Link>
-                </TableCell>
-                <TableCell className="hidden md:table-cell text-muted-foreground">
-                  {[item.make, item.model].filter(Boolean).join(' ') || '—'}
-                </TableCell>
-                <TableCell className="hidden lg:table-cell text-muted-foreground">
-                  {item.deviceCategory.replace(/_/g, ' ')}
-                </TableCell>
-                <TableCell>
-                  <AcquisitionBadge acquisitionType={item.acquisitionType} />
-                </TableCell>
-                <TableCell>
-                  <StatusBadge status={item.status} />
-                </TableCell>
-                <TableCell className="hidden sm:table-cell">
-                  <ConditionBadge condition={item.condition} />
-                </TableCell>
-                <TableCell className="hidden lg:table-cell text-muted-foreground">
-                  {formatDate(item.acquiredAt)}
-                </TableCell>
-              </TableRow>
-            ))}
-            {items.length === 0 && (
-              <TableEmptyState
-                colSpan={7}
-                icon={PackageOpen}
-                message="No equipment found."
-                action={{ label: 'Add Equipment', href: '/equipment/new' }}
-              />
-            )}
-          </TableBody>
-        </Table>
-      </div>
-
-      {meta && <PaginationControls meta={meta} onPageChange={onPageChange} />}
-    </>
   );
 }
