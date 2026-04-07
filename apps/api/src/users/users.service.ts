@@ -15,6 +15,7 @@ import { UserSummary } from '../common/types/user-summary';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { FilterUsersQueryDto } from './dto/filter-users-query.dto';
+import { normalizeEmail } from '../common/transforms/normalize-email';
 
 const BCRYPT_ROUNDS = 12;
 
@@ -64,7 +65,12 @@ export class UsersService {
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.prisma.user.findUnique({ where: { email } });
+    // Defensive normalization: the @NormalizeEmail DTO transform should
+    // already have lowercased, but direct callers (seed, internal services)
+    // may not go through a DTO.
+    return this.prisma.user.findUnique({
+      where: { email: normalizeEmail(email) },
+    });
   }
 
   async create(dto: CreateUserDto, actorId: string): Promise<UserSummary> {
@@ -75,7 +81,7 @@ export class UsersService {
       user = await this.prisma.user.create({
         data: {
           name: dto.name,
-          email: dto.email,
+          email: normalizeEmail(dto.email),
           passwordHash,
           role: dto.role,
         },
@@ -103,7 +109,10 @@ export class UsersService {
     try {
       const user = await this.prisma.user.update({
         where: { id },
-        data: dto,
+        data: {
+          ...dto,
+          ...(dto.email !== undefined && { email: normalizeEmail(dto.email) }),
+        },
       });
       return this.toUserSummary(user);
     } catch (error) {

@@ -5,6 +5,7 @@ import {
   IsString,
   MaxLength,
 } from 'class-validator';
+import { NormalizeEmail } from '../../common/transforms/normalize-email';
 
 export class UpdateProfileDto {
   @IsOptional()
@@ -14,6 +15,7 @@ export class UpdateProfileDto {
   name?: string;
 
   @IsOptional()
+  @NormalizeEmail()
   @IsEmail({ require_tld: false })
   @MaxLength(255)
   email?: string;

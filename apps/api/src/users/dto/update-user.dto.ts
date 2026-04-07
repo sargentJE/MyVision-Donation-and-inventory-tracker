@@ -7,6 +7,7 @@ import {
   MaxLength,
 } from 'class-validator';
 import { Role } from '@prisma/client';
+import { NormalizeEmail } from '../../common/transforms/normalize-email';
 
 export class UpdateUserDto {
   @IsOptional()
@@ -16,6 +17,7 @@ export class UpdateUserDto {
   name?: string;
 
   @IsOptional()
+  @NormalizeEmail()
   @IsEmail({ require_tld: false })
   @MaxLength(255)
   email?: string;

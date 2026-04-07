@@ -4,19 +4,25 @@
 
 import { PrismaClient, Role } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
+import { normalizeEmail } from '../src/common/transforms/normalize-email';
 
 const prisma = new PrismaClient();
 
 async function main() {
   const name = process.env.SEED_ADMIN_NAME;
-  const email = process.env.SEED_ADMIN_EMAIL;
+  const rawEmail = process.env.SEED_ADMIN_EMAIL;
   const password = process.env.SEED_ADMIN_PASSWORD;
 
-  if (!name || !email || !password) {
+  if (!name || !rawEmail || !password) {
     throw new Error(
       'Missing required env vars: SEED_ADMIN_NAME, SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD',
     );
   }
+
+  // Normalize email: stored lowercased, so all lookups must match.
+  // Without this, a re-seed with a differently-cased env var would miss
+  // the existing row and attempt an insert that collides with the unique index.
+  const email = normalizeEmail(rawEmail);
 
   const existing = await prisma.user.findUnique({
     where: { email },

@@ -104,7 +104,7 @@ enum DemoVisitCloseReason {
 model User {
   id           String   @id @default(uuid())
   name         String
-  email        String   @unique
+  email        String   @unique @db.Citext
   passwordHash String
   role         Role     @default(STAFF)
   active       Boolean  @default(true)

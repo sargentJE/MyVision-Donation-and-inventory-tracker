@@ -19,7 +19,13 @@ import {
 } from '@/components/ui/form';
 
 const loginSchema = z.object({
-  email: z.string().min(1, 'Email is required'),
+  // Transforms run before validation: trim → lowercase → email validation.
+  // .pipe() guarantees the validator sees the transformed value.
+  email: z
+    .string()
+    .trim()
+    .toLowerCase()
+    .pipe(z.string().email('Enter a valid email')),
   password: z.string().min(1, 'Password is required'),
 });
 
@@ -136,6 +142,7 @@ function LoginForm() {
                     type="email"
                     placeholder="you@myvision.org.uk"
                     autoComplete="email"
+                    autoFocus={!sessionExpired}
                     {...field}
                   />
                 </FormControl>
