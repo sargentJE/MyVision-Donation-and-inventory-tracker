@@ -101,7 +101,18 @@ export default function LabelPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
+      {/*
+        `grid-cols-1` on mobile is load-bearing: without it, CSS Grid
+        falls back to a single auto-track sized to `max-content`, and
+        because <LabelSheet> inside has a hard `width: 210mm` (794px),
+        the track becomes 794px wide on a 375px viewport. The auth
+        layout's `overflow: hidden` then clips the right portion of
+        every descendant. `grid-cols-1` = `repeat(1, minmax(0, 1fr))`
+        which lets the column shrink below content, restoring normal
+        responsive behaviour and unblocking <PaperPreview>'s
+        ResizeObserver-driven scale.
+      */}
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
         <div className="no-print space-y-4">
           {/* Card 1 — Template */}
           <section

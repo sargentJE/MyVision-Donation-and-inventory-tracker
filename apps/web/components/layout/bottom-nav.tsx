@@ -7,6 +7,7 @@ import {
   Package,
   HandCoins,
   MoreHorizontal,
+  ChevronUp,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
@@ -57,10 +58,20 @@ export function BottomNav({ userRole }: BottomNavProps) {
           <DropdownMenuTrigger
             aria-label="More navigation options"
             className={cn(
-              'flex flex-col items-center gap-0.5 text-xs min-w-[44px] min-h-[44px] justify-center text-white/80',
+              'group flex flex-col items-center gap-0.5 text-xs min-w-[44px] min-h-[44px] justify-center text-white/80',
+              'data-[state=open]:text-myvision-yellow',
             )}
           >
-            <MoreHorizontal className="h-5 w-5" />
+            <div className="relative">
+              <MoreHorizontal className="h-5 w-5" />
+              {/* Round-4: chevron-up hint so users discover that the
+                  button opens upward to reveal more nav items. Rotates
+                  180° when the dropdown is open. */}
+              <ChevronUp
+                aria-hidden="true"
+                className="absolute -top-1.5 left-1/2 h-3 w-3 -translate-x-1/2 transition-transform group-data-[state=open]:rotate-180"
+              />
+            </div>
             <span>More</span>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" side="top">

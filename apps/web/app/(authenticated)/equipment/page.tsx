@@ -126,7 +126,7 @@ export default function InventoryPage() {
                   setPage(1);
                 }}
               >
-                <SelectTrigger id="status-filter" className="w-[180px]">
+                <SelectTrigger id="status-filter" className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
@@ -150,7 +150,7 @@ export default function InventoryPage() {
                   setPage(1);
                 }}
               >
-                <SelectTrigger id="category-filter" className="w-[180px]">
+                <SelectTrigger id="category-filter" className="w-full sm:w-[180px]">
                   <SelectValue placeholder="Category" />
                 </SelectTrigger>
                 <SelectContent>

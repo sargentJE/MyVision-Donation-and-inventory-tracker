@@ -135,7 +135,7 @@ export default function ItemDetailPage() {
             )}
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2 sm:flex-nowrap">
           {!isDecommissioned && (
             <Button variant="outline" size="sm" onClick={() => setDialog({ type: 'edit' })}>
               <Pencil className="mr-2 h-4 w-4" />Edit
@@ -284,7 +284,9 @@ export default function ItemDetailPage() {
 function MetaField({ label, value }: { label: string; value: React.ReactNode }) {
   return (
     <div>
-      <dt className="text-xs text-muted-foreground">{label}</dt>
+      {/* Round-4: bumped from text-xs (12px) to text-sm (14px) so the label
+          clears the recommended mobile body-text floor. */}
+      <dt className="text-sm text-muted-foreground">{label}</dt>
       <dd className="mt-0.5 text-sm">{value ?? '—'}</dd>
     </div>
   );

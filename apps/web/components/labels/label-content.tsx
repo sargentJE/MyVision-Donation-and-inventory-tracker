@@ -37,17 +37,26 @@ export function LabelContent({
   const shortId = equipment.id.substring(0, 8);
 
   // QR code: 60% of the label height, capped at the shorter dimension.
-  // Unchanged in this round — only the text+logo grow.
+  // Unchanged across all sizing rounds — the user explicitly said the QR
+  // is fine.
   const qrMm = Math.min(heightMm * 0.6, widthMm * 0.4);
-  // Bumped from 8/7/6 → 10/8/7 in round-3 so the printed labels are
-  // legible on a sticker sheet. Vertical fit verified: with the new 8mm
-  // logo container (was 6mm), the content row is 25.1mm and the QR is
-  // 22.86mm — 2.24mm of slack remains. The text block at the new sizes
-  // (4 lines × ~0.46mm/pt × 1.3 line-height + 1mm marginTop) is ~15.5mm,
-  // well within the 25mm available. The dormant ≥50mm path is left alone.
-  const nameFontPt = heightMm >= 50 ? 10 : 10;
-  const metaFontPt = heightMm >= 50 ? 9 : 8;
-  const idFontPt = heightMm >= 50 ? 7 : 7;
+  // Round-4: aggressive bump because round-3's 10/8/7 was still too
+  // small to read on a printed sticker sheet. All current templates are
+  // 38.1mm tall so the constants below target that geometry.
+  //
+  //   Logo container 9mm + 1mm marginBottom = 10mm
+  //   Content row    = 38.1 − 4 (padding) − 10 = 24.1mm
+  //   QR             = min(38.1 × 0.6, …) = 22.86mm  → 1.24mm slack ✓
+  //   Text block     = (13 + 10 + 10 + 9) × 0.353 × 1.3 + 1mm marginTop
+  //                  = ~20.3mm in 24.1mm available    → 3.8mm slack ✓
+  //
+  // Long names truncate via the existing ellipsis CSS — no regression.
+  // The dormant `heightMm >= 50` ternary was removed because no current
+  // template is ≥50mm tall and ternary code paths that never run rot.
+  // Re-add the conditional if/when a larger template is introduced.
+  const nameFontPt = 13;
+  const metaFontPt = 10;
+  const idFontPt = 9;
 
   return (
     <div
@@ -67,17 +76,17 @@ export function LabelContent({
       }}
     >
       {/*
-        Logo container 8mm (was 6mm) and img 7mm (was 5mm) — round-3 tweak
-        for legibility on printed sticker sheets. The 2mm growth here
-        shrinks the content row from 27.1mm to 25.1mm; the QR (22.86mm)
-        still fits with 2.24mm of slack.
+        Round-4 logo: container 9mm (was 8mm), img 8mm (was 7mm). The
+        +1mm growth here shrinks the content row from 25.1mm to 24.1mm;
+        the QR (22.86mm) still fits with 1.24mm of slack — well within
+        ±0.5mm print tolerance.
       */}
-      <div style={{ height: '8mm', marginBottom: '1mm' }}>
+      <div style={{ height: '9mm', marginBottom: '1mm' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/myvision-logo.svg"
           alt="MyVision Oxfordshire"
-          style={{ height: '7mm' }}
+          style={{ height: '8mm' }}
         />
       </div>
 

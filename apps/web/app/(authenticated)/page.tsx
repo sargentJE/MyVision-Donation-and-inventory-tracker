@@ -55,7 +55,7 @@ export default function DashboardPage() {
       {/* ROW 1: Key Metrics */}
       <section aria-labelledby="metrics-heading">
       <h2 id="metrics-heading" className="sr-only">Key Metrics</h2>
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
         <MetricCard
           icon={AlertTriangle}
           label="Overdue Loans"
