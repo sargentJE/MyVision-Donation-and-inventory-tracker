@@ -40,7 +40,10 @@ export function TemplatePicker({ value, onChange }: TemplatePickerProps) {
                 'flex-1 rounded-md border px-3 py-2 text-left text-sm transition-colors',
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 selected
-                  ? 'border-primary bg-primary/5 text-primary'
+                  // Inset shadow draws a 3px yellow strip on the left edge
+                  // (mirrors the sidebar active-item accent) without
+                  // disturbing the rounded primary border around it.
+                  ? 'border-primary bg-primary/5 text-primary shadow-[inset_3px_0_0_0_#fdea18]'
                   : 'border-border hover:bg-muted/40',
               )}
             >

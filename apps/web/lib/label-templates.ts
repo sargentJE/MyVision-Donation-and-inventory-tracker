@@ -11,7 +11,11 @@ export type LabelTemplateId = 'avery-l7160' | 'qconnect-14';
 
 export interface LabelTemplate {
   id: LabelTemplateId;
+  /** Verbose label shown in the picker, includes capacity for context. */
   name: string;
+  /** Short form used in narrative copy where the verbose name would
+   *  read awkwardly (e.g. "Load one ${shortName} sheet"). */
+  shortName: string;
   brand: string;
   labelsPerSheet: number;
   cols: number;
@@ -30,6 +34,7 @@ export const LABEL_TEMPLATES: Record<LabelTemplateId, LabelTemplate> = {
   'avery-l7160': {
     id: 'avery-l7160',
     name: 'Avery L7160 — 21 per sheet',
+    shortName: 'Avery L7160',
     brand: 'Avery',
     labelsPerSheet: 21,
     cols: 3,
@@ -50,6 +55,7 @@ export const LABEL_TEMPLATES: Record<LabelTemplateId, LabelTemplate> = {
   'qconnect-14': {
     id: 'qconnect-14',
     name: 'QConnect 14 per sheet (L7163 equiv.)',
+    shortName: 'QConnect 14',
     brand: 'QConnect',
     labelsPerSheet: 14,
     cols: 2,

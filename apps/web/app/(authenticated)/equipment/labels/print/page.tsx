@@ -3,9 +3,11 @@
 import { Suspense, useEffect, useMemo, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useQueries } from '@tanstack/react-query';
+import { Printer } from 'lucide-react';
 import { api } from '@/lib/api';
 import { queryKeys } from '@/lib/query-keys';
 import { useLabelTemplate } from '@/hooks/use-label-template';
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { LabelPrintView } from '@/components/labels/label-print-view';
 import { LabelPrintToolbar } from '@/components/labels/label-print-toolbar';
@@ -97,45 +99,92 @@ function BatchLabelPrintInner() {
     );
   }
 
+  const printLabel = `Print ${cells.length} label${cells.length === 1 ? '' : 's'}`;
+
   return (
     <>
-      <LabelPrintToolbar
-        printLabel={`Print ${cells.length} label${cells.length === 1 ? '' : 's'}`}
-        printDisabled={loading}
-      />
+      <LabelPrintToolbar />
 
-      <div className="no-print mb-6">
+      <div className="no-print mb-6 space-y-2">
         <h1 className="text-xl font-semibold">
-          Print Labels ({cells.length} item{cells.length === 1 ? '' : 's'})
+          Print Labels{' '}
+          <span className="text-muted-foreground font-normal text-base">
+            ({cells.length} item{cells.length === 1 ? '' : 's'})
+          </span>
         </h1>
-        <p className="text-sm text-muted-foreground mt-1">
-          {loading
-            ? 'Loading item details…'
-            : 'Choose a sheet template and start position, then print.'}
-        </p>
+        <div className="flex flex-wrap items-center gap-2">
+          <Badge variant="secondary">
+            {template.name} · {template.labelWidthMm}×{template.labelHeightMm}mm
+            · {template.labelsPerSheet}/sheet
+          </Badge>
+          <p className="text-sm text-muted-foreground">
+            {loading
+              ? 'Loading item details…'
+              : 'Configure and preview before printing.'}
+          </p>
+        </div>
       </div>
 
-      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <div className="no-print space-y-6">
-          <TemplatePicker value={templateId} onChange={setTemplateId} />
-          <StartPositionPicker
-            template={template}
-            value={safeStart}
-            onChange={setStartPosition}
-          />
+      <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] lg:items-start">
+        <div className="no-print space-y-4">
+          {/* Card 1 — Template */}
+          <section
+            aria-labelledby="batch-template-heading"
+            className="rounded-md border p-6 space-y-4"
+          >
+            <h2 id="batch-template-heading" className="text-lg font-medium">
+              Template
+            </h2>
+            <TemplatePicker value={templateId} onChange={setTemplateId} />
+          </section>
 
-          <LabelPrintInstructions template={template} />
+          {/* Card 2 — Advanced (collapsible, defaults closed) */}
+          <details className="rounded-md border p-4 group">
+            <summary className="cursor-pointer select-none text-sm font-medium text-foreground/80 hover:text-foreground">
+              Use a partially-used sheet
+              <span className="text-muted-foreground font-normal ml-2">
+                (advanced — currently starts at cell {safeStart + 1})
+              </span>
+            </summary>
+            <div className="mt-4">
+              <p className="text-xs text-muted-foreground mb-3">
+                Skip the first N cells if your sticker sheet is partially
+                used. Empty cells appear with a dashed outline in the preview.
+              </p>
+              <StartPositionPicker
+                template={template}
+                value={safeStart}
+                onChange={setStartPosition}
+              />
+            </div>
+          </details>
         </div>
 
-        <div>
-          <LabelPrintView
-            template={template}
-            cells={cells}
-            startPosition={safeStart}
-          />
-        </div>
+        <LabelPrintView
+          template={template}
+          cells={cells}
+          startPosition={safeStart}
+          printLabel={printLabel}
+          printDisabled={loading}
+        />
+      </div>
+
+      {/* Sticky mobile action bar — Print + (?) instructions trigger.
+          Clears the BottomNav (h-16, bottom-0). The (?) trigger ensures
+          mobile users have the same access to print-dialog instructions
+          as desktop users (where the trigger lives in LabelPrimaryActions). */}
+      <div className="lg:hidden fixed inset-x-4 bottom-24 z-30 no-print flex items-center gap-2">
+        <Button
+          size="lg"
+          className="flex-1 shadow-lg"
+          onClick={() => window.print()}
+          disabled={loading}
+        >
+          <Printer className="mr-2 h-4 w-4" />
+          {printLabel}
+        </Button>
+        <LabelPrintInstructions template={template} />
       </div>
     </>
   );
 }
-

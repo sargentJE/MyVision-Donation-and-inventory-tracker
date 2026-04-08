@@ -37,10 +37,17 @@ export function LabelContent({
   const shortId = equipment.id.substring(0, 8);
 
   // QR code: 60% of the label height, capped at the shorter dimension.
+  // Unchanged in this round — only the text+logo grow.
   const qrMm = Math.min(heightMm * 0.6, widthMm * 0.4);
-  const nameFontPt = heightMm >= 50 ? 10 : 8;
-  const metaFontPt = heightMm >= 50 ? 9 : 7;
-  const idFontPt = heightMm >= 50 ? 7 : 6;
+  // Bumped from 8/7/6 → 10/8/7 in round-3 so the printed labels are
+  // legible on a sticker sheet. Vertical fit verified: with the new 8mm
+  // logo container (was 6mm), the content row is 25.1mm and the QR is
+  // 22.86mm — 2.24mm of slack remains. The text block at the new sizes
+  // (4 lines × ~0.46mm/pt × 1.3 line-height + 1mm marginTop) is ~15.5mm,
+  // well within the 25mm available. The dormant ≥50mm path is left alone.
+  const nameFontPt = heightMm >= 50 ? 10 : 10;
+  const metaFontPt = heightMm >= 50 ? 9 : 8;
+  const idFontPt = heightMm >= 50 ? 7 : 7;
 
   return (
     <div
@@ -59,12 +66,18 @@ export function LabelContent({
         background: '#fff',
       }}
     >
-      <div style={{ height: '6mm', marginBottom: '1mm' }}>
+      {/*
+        Logo container 8mm (was 6mm) and img 7mm (was 5mm) — round-3 tweak
+        for legibility on printed sticker sheets. The 2mm growth here
+        shrinks the content row from 27.1mm to 25.1mm; the QR (22.86mm)
+        still fits with 2.24mm of slack.
+      */}
+      <div style={{ height: '8mm', marginBottom: '1mm' }}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src="/myvision-logo.svg"
           alt="MyVision Oxfordshire"
-          style={{ height: '5mm' }}
+          style={{ height: '7mm' }}
         />
       </div>
 

@@ -93,6 +93,12 @@
   .no-print {
     display: none !important;
   }
+  /* Screen-only preview overlays (cell numbers, blank-cell outlines,
+     sheet separators) must vanish in print so the physical labels
+     never carry mockup chrome. */
+  .screen-only {
+    display: none !important;
+  }
   @page {
     size: A4;
     margin: 0;
