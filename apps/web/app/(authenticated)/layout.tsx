@@ -4,6 +4,7 @@ import { useEffect } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/hooks/use-auth';
 import { useSidebarState } from '@/hooks/use-sidebar-state';
+import { useRouteFocus } from '@/hooks/use-route-focus';
 import { Sidebar } from '@/components/layout/sidebar';
 import { Header } from '@/components/layout/header';
 import { BottomNav } from '@/components/layout/bottom-nav';
@@ -18,6 +19,7 @@ export default function AuthLayout({
   const { user, isLoading, isAuthenticated, logout } = useAuth();
   const { collapsed: sidebarCollapsed, toggle: toggleSidebar } =
     useSidebarState();
+  useRouteFocus();
 
   useEffect(() => {
     if (!isLoading && !isAuthenticated) {

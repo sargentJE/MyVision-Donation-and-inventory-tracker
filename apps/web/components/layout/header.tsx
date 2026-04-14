@@ -69,9 +69,9 @@ export function Header({
         )}
       </Button>
 
-      <h2 className="text-sm font-medium text-muted-foreground truncate">
+      <span className="text-sm font-medium text-muted-foreground truncate" aria-hidden="true">
         {title}
-      </h2>
+      </span>
 
       <div className="flex items-center gap-2 ml-auto">
         <NotificationBell />

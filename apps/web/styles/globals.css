@@ -63,6 +63,14 @@
   }
 }
 
+/* Accessibility — suppress focus ring on programmatically focused headings.
+   useRouteFocus sets tabindex="-1" and calls .focus() on the h1 after each
+   client-side navigation.  :focus-visible heuristics usually suppress the
+   ring for programmatic focus, but this is belt-and-suspenders. */
+h1[tabindex="-1"]:focus {
+  outline: none;
+}
+
 /* Accessibility — respect user motion preferences (WCAG 2.3.3 AAA) */
 @media (prefers-reduced-motion: reduce) {
   *,
