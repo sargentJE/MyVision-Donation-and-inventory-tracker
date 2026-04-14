@@ -94,13 +94,15 @@ function LoginForm() {
     return null;
   }
 
-  const errorMessage =
-    loginError &&
-    ('status' in loginError
-      ? (loginError as { status: number }).status === 401
-        ? 'Invalid email or password'
-        : 'Something went wrong. Please try again.'
-      : 'Something went wrong. Please try again.');
+  const errorMessage = (() => {
+    if (!loginError) return null;
+    const err = loginError as Error & { status?: number; code?: string };
+    if (err.code === 'COOKIES_REJECTED') {
+      return 'Sign-in succeeded, but your browser blocked our session cookies. This is usually caused by privacy extensions, ad blockers, or antivirus with HTTPS inspection. Try a different browser or disable the relevant extensions.';
+    }
+    if (err.status === 401) return 'Invalid email or password';
+    return 'Something went wrong. Please try again.';
+  })();
 
   return (
     <div className="w-full max-w-sm space-y-6 rounded-lg border border-t-4 border-border border-t-primary bg-background p-6 shadow-sm">

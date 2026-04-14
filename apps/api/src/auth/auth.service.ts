@@ -190,14 +190,14 @@ export class AuthService {
     response.cookie('jwt', jwt, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 60 * 60 * 1000, // 60 minutes
     });
 
     response.cookie('refreshToken', rawRefreshToken, {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict',
+      sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     });
   }
@@ -212,7 +212,7 @@ export class AuthService {
     return {
       httpOnly: true,
       secure: isProduction,
-      sameSite: 'strict' as const,
+      sameSite: 'lax' as const,
     };
   }
 

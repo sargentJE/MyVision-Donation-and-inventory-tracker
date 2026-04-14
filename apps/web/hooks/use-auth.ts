@@ -22,6 +22,28 @@ interface MessageResponse {
   data: { message: string };
 }
 
+// After a successful login the server sets httpOnly cookies. A privacy
+// extension, AV with HTTPS inspection, or strict browser setting can
+// silently reject them — the next authenticated request would 401 and
+// cascade into a misleading "Session expired" redirect. Verify here.
+async function verifyCookiesAccepted(): Promise<UserSummary> {
+  try {
+    const me = await api.get<{ data: UserSummary }>('/auth/me', {
+      skipAuthRedirect: true,
+    });
+    return me.data;
+  } catch (err) {
+    if ((err as { status?: number }).status === 401) {
+      const rejected = new Error(
+        'Session cookies were rejected by the browser.',
+      ) as Error & { code: string };
+      rejected.code = 'COOKIES_REJECTED';
+      throw rejected;
+    }
+    throw err;
+  }
+}
+
 export function useAuth() {
   const queryClient = useQueryClient();
   const router = useRouter();
@@ -43,8 +65,18 @@ export function useAuth() {
 
   const loginMutation = useMutation({
     mutationFn: async (credentials: { email: string; password: string }) => {
-      const res = await api.post<AuthResponse>('/auth/login', credentials);
-      return res.data.user;
+      // skipAuthRedirect: a 401 here means wrong credentials, not an
+      // expired session — let the login page show an inline error rather
+      // than cascading into a misleading "Session expired" redirect.
+      await api.post<AuthResponse>('/auth/login', credentials, {
+        skipAuthRedirect: true,
+      });
+      return verifyCookiesAccepted();
+    },
+    // Cancel the mount-time /auth/refresh so its stale 401 can't land
+    // after our successful login and wipe the state we're about to set.
+    onMutate: async () => {
+      await queryClient.cancelQueries({ queryKey: queryKeys.auth.user });
     },
     onSuccess: (user) => {
       queryClient.setQueryData(queryKeys.auth.user, user);
